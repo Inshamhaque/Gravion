@@ -1,4 +1,4 @@
-# 🌌 Gravity Simulator
+# 🌌 Gravion - Gravity Simulator
 
 An **interactive gravity & orbital mechanics simulator** built with **HTML, CSS, and JavaScript**.  
 Add planets, moons, comets, and asteroids to orbit around a customizable star and watch realistic orbital motion unfold.
@@ -65,5 +65,4 @@ Add planets, moons, comets, and asteroids to orbit around a customizable star an
 ## 📦 Setup
 1. Clone repo:
    ```bash
-   git clone https://github.com/your-username/gravity-simulator.git
-   cd gravity-simulator
+   git clone https://github.com/your-username/gravion.git
