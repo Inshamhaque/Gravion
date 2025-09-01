@@ -6,6 +6,7 @@ const avgSpeedEl = document.getElementById('avg-speed');
 let planetCount = 0;
 let totalSystemMass = 1.0; // Sun's mass
 let celestialBodies = [];
+let currentStarMass = 1.0; // Track star mass for physics calculations
 
 // Create animated star field
 function createStarField() {
@@ -33,11 +34,27 @@ function getPlanetType(distance, isSpecial = false) {
     return Math.random() > 0.3 ? 'comet' : 'asteroid';
 }
 
-// Calculate orbital velocity based on distance (Kepler's laws)
+// Calculate orbital velocity based on distance and star mass (Kepler's laws)
 function getOrbitalPeriod(distance) {
-    // Simplified: T ∝ r^1.5 (Kepler's third law)
-    const basePeriod = 3; // seconds for closest orbit
-    return basePeriod * Math.pow(distance / 65, 1.5);
+    // T = 2π√(r³/GM) - Kepler's third law
+    const basePeriod = 3; // seconds for closest orbit at 1 solar mass
+    return basePeriod * Math.pow(distance / 65, 1.5) / Math.sqrt(currentStarMass);
+}
+
+// Update all existing orbital periods when star mass changes
+function updateAllOrbitalSpeeds() {
+    celestialBodies.forEach(body => {
+        if (body.element.parentNode) {
+            const newPeriod = getOrbitalPeriod(body.distance);
+            body.period = newPeriod;
+            body.element.style.animationDuration = newPeriod + 's';
+            
+            // Update tooltip
+            const orbitalSpeed = Math.round(30 * Math.sqrt(currentStarMass) / Math.sqrt(body.distance / 65));
+            body.element.title = `Distance: ${Math.round(body.distance)}px | Period: ${newPeriod.toFixed(1)}s | Speed: ${orbitalSpeed}km/s`;
+        }
+    });
+    updateStats();
 }
 
 // Create gravitational wave effect
@@ -108,7 +125,7 @@ function handleSpaceClick(e) {
     body.style.animationDelay = -(startAngle / 360 * orbitalPeriod) + 's';
 
     // Add tooltip with orbital data
-    const orbitalSpeed = Math.round(30 / Math.sqrt(distance / 65)); // Approximate km/s
+    const orbitalSpeed = Math.round(30 * Math.sqrt(currentStarMass) / Math.sqrt(distance / 65)); // Approximate km/s
     body.title = `Distance: ${Math.round(distance)}px | Period: ${orbitalPeriod.toFixed(1)}s | Speed: ${orbitalSpeed}km/s`;
 
     space.appendChild(body);
@@ -161,10 +178,10 @@ function updateStats() {
     bodyCountEl.textContent = planetCount;
     totalMassEl.textContent = totalSystemMass.toFixed(2);
 
-    // Calculate average orbital speed
+    // Calculate average orbital speed based on current star mass
     if (celestialBodies.length > 0) {
         const avgSpeed = celestialBodies.reduce((sum, body) => 
-            sum + (30 / Math.sqrt(body.distance / 65)), 0) / celestialBodies.length;
+            sum + (30 * Math.sqrt(currentStarMass) / Math.sqrt(body.distance / 65)), 0) / celestialBodies.length;
         avgSpeedEl.textContent = Math.round(avgSpeed);
     } else {
         avgSpeedEl.textContent = '0';
@@ -196,6 +213,33 @@ document.getElementById('clear').addEventListener('change', function(e) {
     }
 });
 
+// Mass slider functionality
+document.getElementById('mass-slider').addEventListener('input', function(e) {
+    currentStarMass = parseFloat(e.target.value);
+    const massValue = document.querySelector('.mass-value');
+    const sun = document.querySelector('.sun');
+    
+    // Update display
+    massValue.textContent = currentStarMass.toFixed(1) + 'M☉';
+    
+    // Update sun size and glow based on mass
+    const scale = 0.7 + (currentStarMass * 0.3); // Scale from 0.7x to 1.6x
+    const glowIntensity = 30 + (currentStarMass * 20); // Glow from 30px to 90px
+    
+    sun.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    sun.style.boxShadow = `0 0 ${glowIntensity}px #ffeb3b, 0 0 ${glowIntensity * 2}px rgba(255, 235, 59, 0.6), 0 0 ${glowIntensity * 3}px rgba(255, 152, 0, 0.3)`;
+    
+    // Update all orbital speeds
+    updateAllOrbitalSpeeds();
+    
+    // Update total system mass
+    const planetaryMass = celestialBodies.reduce((sum, body) => sum + body.mass, 0);
+    totalSystemMass = currentStarMass + planetaryMass;
+    updateStats();
+});
+
+// Pause functionality - no additional code needed, CSS handles it
+
 // Gravity toggle (affects visual feedback)
 document.getElementById('gravity').addEventListener('change', function(e) {
     const orbits = space.querySelectorAll('.orbit-path');
@@ -217,13 +261,21 @@ document.addEventListener('keydown', function(e) {
         case 'C':
             document.getElementById('clear').click();
             break;
-        case ' ':
-            e.preventDefault();
-            document.getElementById('pause').click();
-            break;
         case 'g':
         case 'G':
             document.getElementById('gravity').click();
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            const massSlider = document.getElementById('mass-slider');
+            massSlider.value = Math.min(3, parseFloat(massSlider.value) + 0.1);
+            massSlider.dispatchEvent(new Event('input'));
+            break;
+        case 'ArrowDown':
+            e.preventDefault();
+            const massSliderDown = document.getElementById('mass-slider');
+            massSliderDown.value = Math.max(0.5, parseFloat(massSliderDown.value) - 0.1);
+            massSliderDown.dispatchEvent(new Event('input'));
             break;
     }
 });

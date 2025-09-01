@@ -157,8 +157,8 @@ input[type="checkbox"] {
     content: "⏸ Pause";
 }
 
-.pause-btn:not(.paused)::after {
-    content: "⏸ Pause";
+#pause:checked + .pause-btn::after {
+    content: "▶ Resume";
 }
 
 #gravity:checked + .gravity-btn {
@@ -313,11 +313,6 @@ input[type="checkbox"] {
     animation: trail-fade 3s ease-out forwards;
     pointer-events: none;
     z-index: 2;
-}
-
-#pause:checked ~ .space .planet,
-#pause:checked ~ .space .sun {
-    animation-play-state: paused !important;
 }
 
 #clear:checked ~ .space .planet,

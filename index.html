@@ -18,10 +18,13 @@
         <div class="controls">
             <input type="checkbox" id="clear">
             <label for="clear" class="btn clear-btn"></label>
-            <input type="checkbox" id="pause">
-            <label for="pause" class="btn pause-btn"></label>
             <input type="checkbox" id="gravity" checked>
             <label for="gravity" class="btn gravity-btn"></label>
+            <div class="mass-control">
+                <label for="mass-slider" class="mass-label">⭐ Star Mass</label>
+                <input type="range" id="mass-slider" min="0.5" max="3" step="0.1" value="1" class="mass-slider">
+                <span class="mass-value">1.0M☉</span>
+            </div>
         </div>
 
         <div class="physics-info">
